@@ -33,6 +33,8 @@ float *getDepthData();
 
 float *getVertices(float *depthData);
 
+float *getTriangles();
+
 int main() {
 	int i;
 	static float x[8][3] = {{0, 0, 0},
@@ -50,9 +52,13 @@ int main() {
 								  {2, 3, 7, 6},
 								  {3, 0, 4, 7}};
 
+	// Get vertices and triangles from depth data
 	float *depthData = getDepthData();
 	float *vertices = getVertices(depthData); // TODO : Free data
 	delete (depthData);
+	float *triangles = getTriangles(); // TODO : Free data
+
+
 
 
 	// We'll create the building blocks of polydata including data attributes.
@@ -154,4 +160,28 @@ float *getVertices(float *depthData) {
 		}
 
 	return points;
+}
+
+
+// Build triangles
+float *getTriangles() {
+	float *triangles = new float[(KINECT_X_RES - 1) * (KINECT_Y_RES - 1) * 2 * 3]; // Build two triangles
+
+	int triCoord = 0;
+	for (int i = 1; i < KINECT_X_RES; ++i)
+		for (int j = 1; j < KINECT_Y_RES; ++j) {
+			// Right Top Triangle
+			triangles[triCoord] = (i - 1) * KINECT_Y_RES + (j - 1); // Left Top
+			triangles[triCoord + 1] = (i) * KINECT_Y_RES + (j - 1); // Top
+			triangles[triCoord + 2] = i * KINECT_Y_RES + j; // Self
+
+			// Left Bottom Triangle
+			triangles[triCoord + 3] = (i - 1) * KINECT_Y_RES + (j - 1); // Left Top
+			triangles[triCoord + 4] = (i - 1) * KINECT_Y_RES + (j); // Left
+			triangles[triCoord + 5] = i * KINECT_Y_RES + j; // Self
+
+			triCoord += 6;
+		}
+
+	return triangles;
 }
