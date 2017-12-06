@@ -33,59 +33,46 @@ float *getDepthData();
 
 float *getVertices(float *depthData);
 
-float *getTriangles();
+vtkIdType *getTriangles();
 
 int main() {
 	int i;
-	static float x[8][3] = {{0, 0, 0},
-							{1, 0, 0},
-							{1, 1, 0},
-							{0, 1, 0},
-							{0, 0, 1},
-							{1, 0, 1},
-							{1, 1, 1},
-							{0, 1, 1}};
-	static vtkIdType pts[6][4] = {{0, 1, 2, 3},
-								  {4, 5, 6, 7},
-								  {0, 1, 5, 4},
-								  {1, 2, 6, 5},
-								  {2, 3, 7, 6},
-								  {3, 0, 4, 7}};
 
 	// Get vertices and triangles from depth data
 	float *depthData = getDepthData();
-	float *vertices = getVertices(depthData); // TODO : Free data
+	float *vertices = getVertices(depthData);
 	delete (depthData);
-	float *triangles = getTriangles(); // TODO : Free data
+	vtkIdType *triangles = getTriangles();
 
 
-
-
-	// We'll create the building blocks of polydata including data attributes.
-	vtkPolyData *cube = vtkPolyData::New();
+	// Create the building blocks of polydata
+	vtkPolyData *surface = vtkPolyData::New();
 	vtkPoints *points = vtkPoints::New();
-	vtkCellArray *polys = vtkCellArray::New();
+	vtkCellArray *cells = vtkCellArray::New();
 	vtkFloatArray *scalars = vtkFloatArray::New();
 
+
 	// Load the point, cell, and data attributes.
-	for (i = 0; i < 8; i++) points->InsertPoint(i, x[i]);
-	for (i = 0; i < 6; i++) polys->InsertNextCell(4, pts[i]);
-	for (i = 0; i < 8; i++) scalars->InsertTuple1(i, i);
+	for (i = 0; i < KINECT_X_RES * KINECT_Y_RES; i++) points->InsertPoint(i, &vertices[i * 3]);
+	delete (vertices);
+	for (i = 0; i < (KINECT_X_RES - 1) * (KINECT_Y_RES - 1) * 2; i++) cells->InsertNextCell(3, &triangles[i * 3]);
+	delete (triangles);
+	for (i = 0; i < KINECT_X_RES * KINECT_Y_RES; i++) scalars->InsertTuple1(i, i);
 
 	// We now assign the pieces to the vtkPolyData.
-	cube->SetPoints(points);
+	surface->SetPoints(points);
 	points->Delete();
-	cube->SetPolys(polys);
-	polys->Delete();
-	cube->GetPointData()->SetScalars(scalars);
+	surface->SetPolys(cells);
+	cells->Delete();
+	surface->GetPointData()->SetScalars(scalars);
 	scalars->Delete();
 
 	// Now we'll look at it.
-	vtkPolyDataMapper *cubeMapper = vtkPolyDataMapper::New();
-	cubeMapper->SetInputData(cube);
-	cubeMapper->SetScalarRange(0, 7);
+	vtkPolyDataMapper *PolyMapper = vtkPolyDataMapper::New();
+	PolyMapper->SetInputData(surface);
+	PolyMapper->SetScalarRange(0, KINECT_X_RES * KINECT_Y_RES - 1);
 	vtkActor *cubeActor = vtkActor::New();
-	cubeActor->SetMapper(cubeMapper);
+	cubeActor->SetMapper(PolyMapper);
 
 	// The usual rendering stuff.
 	vtkCamera *camera = vtkCamera::New();
@@ -111,9 +98,8 @@ int main() {
 	iren->Start();
 
 	// Clean up
-
-	cube->Delete();
-	cubeMapper->Delete();
+	surface->Delete();
+	PolyMapper->Delete();
 	cubeActor->Delete();
 	camera->Delete();
 	renderer->Delete();
@@ -154,9 +140,9 @@ float *getVertices(float *depthData) {
 	for (int i = 0; i < KINECT_X_RES; ++i)
 		for (int j = 0; j < KINECT_Y_RES; ++j) {
 			int coord = i * KINECT_Y_RES + j;
-			points[coord] = i;
-			points[coord + 1] = j;
-			points[coord + 2] = depthData[coord];
+			points[coord * 3] = i * 100;
+			points[coord * 3 + 1] = j * 100;
+			points[coord * 3 + 2] = depthData[coord];
 		}
 
 	return points;
@@ -164,8 +150,8 @@ float *getVertices(float *depthData) {
 
 
 // Build triangles
-float *getTriangles() {
-	float *triangles = new float[(KINECT_X_RES - 1) * (KINECT_Y_RES - 1) * 2 * 3]; // Build two triangles
+vtkIdType *getTriangles() {
+	vtkIdType *triangles = new vtkIdType[(KINECT_X_RES - 1) * (KINECT_Y_RES - 1) * 2 * 3]; // Build two triangles
 
 	int triCoord = 0;
 	for (int i = 1; i < KINECT_X_RES; ++i)
