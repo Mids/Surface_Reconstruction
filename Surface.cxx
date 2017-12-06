@@ -31,6 +31,8 @@
 
 float *getDepthData();
 
+float *getVertices(float *depthData);
+
 int main() {
 	int i;
 	static float x[8][3] = {{0, 0, 0},
@@ -49,6 +51,8 @@ int main() {
 								  {3, 0, 4, 7}};
 
 	float *depthData = getDepthData();
+	float *vertices = getVertices(depthData); // TODO : Free data
+	delete (depthData);
 
 
 	// We'll create the building blocks of polydata including data attributes.
@@ -134,4 +138,20 @@ float *getDepthData() {
 		}
 
 	return depthData;
+}
+
+
+// Locate vertices by depth ( x , y , depth )
+float *getVertices(float *depthData) {
+	float *points = new float[KINECT_X_RES * KINECT_Y_RES * 3];
+
+	for (int i = 0; i < KINECT_X_RES; ++i)
+		for (int j = 0; j < KINECT_Y_RES; ++j) {
+			int coord = i * KINECT_Y_RES + j;
+			points[coord] = i;
+			points[coord + 1] = j;
+			points[coord + 2] = depthData[coord];
+		}
+
+	return points;
 }
