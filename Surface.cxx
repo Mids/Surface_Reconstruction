@@ -26,6 +26,11 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 
+#define KINECT_X_RES 640
+#define KINECT_Y_RES 480
+
+float *getDepthData();
+
 int main() {
 	int i;
 	static float x[8][3] = {{0, 0, 0},
@@ -42,6 +47,9 @@ int main() {
 								  {1, 2, 6, 5},
 								  {2, 3, 7, 6},
 								  {3, 0, 4, 7}};
+
+	float *depthData = getDepthData();
+
 
 	// We'll create the building blocks of polydata including data attributes.
 	vtkPolyData *cube = vtkPolyData::New();
@@ -103,4 +111,27 @@ int main() {
 	iren->Delete();
 
 	return 0;
+}
+
+
+// Building Sample data of object
+float *getDepthData() {
+	const float PLANEDEPTH = 50000;
+	float *depthData = new float[KINECT_X_RES * KINECT_Y_RES];
+	float depth;
+
+	for (int i = 0; i < KINECT_X_RES; ++i)
+		for (int j = 0; j < KINECT_Y_RES; ++j) {
+			depth = 0;
+			if (i > KINECT_X_RES / 6 && i < 5 * KINECT_X_RES / 6 && j > KINECT_Y_RES / 6 && j < 5 * KINECT_Y_RES / 6) {
+
+				int x2 = (KINECT_X_RES / 2 - i) * (KINECT_X_RES / 2 - i);
+				int y2 = (KINECT_Y_RES / 2 - j) * (KINECT_Y_RES / 2 - j);
+				depth = PLANEDEPTH - x2 / 3 - y2 / 3;
+			}
+
+			depthData[i * KINECT_Y_RES + j] = depth;
+		}
+
+	return depthData;
 }
