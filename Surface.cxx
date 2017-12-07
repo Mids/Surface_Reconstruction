@@ -23,9 +23,14 @@
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
+#include "vtkProperty.h"
 
+#define SCALE 10
 #define KINECT_X_RES 640
 #define KINECT_Y_RES 480
+
+static const int MESH_X_RES = KINECT_X_RES / SCALE;
+static const int MESH_Y_RES = KINECT_Y_RES / SCALE;
 
 float *getDepthData();
 
@@ -49,9 +54,9 @@ int main() {
 
 
 	// Load the point, cell, and data attributes.
-	for (i = 0; i < KINECT_X_RES * KINECT_Y_RES; i++) points->InsertPoint(i, &vertices[i * 3]);
+	for (i = 0; i < MESH_X_RES * MESH_Y_RES; i++) points->InsertPoint(i, &vertices[i * 3]);
 	delete (vertices);
-	for (i = 0; i < KINECT_X_RES * KINECT_Y_RES; i++) scalars->InsertTuple1(i, i);
+	for (i = 0; i < MESH_X_RES * MESH_Y_RES; i++) scalars->InsertTuple1(i, i);
 
 
 	// Assign the pieces to the vtkPolyData.
@@ -70,9 +75,10 @@ int main() {
 	// Now we'll look at it.
 	vtkPolyDataMapper *PolyMapper = vtkPolyDataMapper::New();
 	PolyMapper->SetInputConnection(delaunay->GetOutputPort());
-	PolyMapper->SetScalarRange(0, KINECT_X_RES * KINECT_Y_RES - 1);
+	PolyMapper->SetScalarRange(0, MESH_X_RES * MESH_Y_RES - 1);
 	vtkActor *surfaceActor = vtkActor::New();
 	surfaceActor->SetMapper(PolyMapper);
+	surfaceActor->GetProperty()->SetRepresentationToWireframe();
 
 	// The usual rendering stuff.
 	vtkCamera *camera = vtkCamera::New();
@@ -135,14 +141,14 @@ float *getDepthData() {
 
 // Locate vertices by depth ( x , y , depth )
 float *getVertices(float *depthData) {
-	float *points = new float[KINECT_X_RES * KINECT_Y_RES * 3];
+	float *points = new float[MESH_X_RES * MESH_Y_RES * 3];
 
-	for (int i = 0; i < KINECT_X_RES; ++i)
-		for (int j = 0; j < KINECT_Y_RES; ++j) {
-			int coord = i * KINECT_Y_RES + j;
-			points[coord * 3] = i * 100;
-			points[coord * 3 + 1] = j * 100;
-			points[coord * 3 + 2] = depthData[coord];
+	for (int i = 0; i < MESH_X_RES; ++i)
+		for (int j = 0; j < MESH_Y_RES; ++j) {
+			int coord = i * MESH_Y_RES + j;
+			points[coord * 3] = i * SCALE * 100;
+			points[coord * 3 + 1] = j * SCALE * 100;
+			points[coord * 3 + 2] = depthData[i * SCALE * KINECT_Y_RES + j * SCALE];
 		}
 
 	return points;
