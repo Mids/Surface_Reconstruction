@@ -34,14 +34,14 @@ static const int MESH_Y_RES = KINECT_Y_RES / SCALE;
 
 float *getDepthData();
 
-float *getVertices(float *depthData);
+vtkFloatArray * getVertices(float *depthData);
 
 int main() {
 	int i;
 
 	// Get vertices and triangles from depth data
 	float *depthData = getDepthData();
-	float *vertices = getVertices(depthData);
+	vtkFloatArray *vertices = getVertices(depthData);
 	delete (depthData);
 
 
@@ -52,8 +52,7 @@ int main() {
 
 
 	// Load the point, cell, and data attributes.
-	for (i = 0; i < MESH_X_RES * MESH_Y_RES; i++) points->InsertPoint(i, &vertices[i * 3]);
-	delete (vertices);
+	points->SetData(vertices);
 	for (i = 0; i < MESH_X_RES * MESH_Y_RES; i++) scalars->InsertTuple1(i, i);
 
 
@@ -102,6 +101,7 @@ int main() {
 	iren->Start();
 
 	// Clean up
+	vertices->Delete();
 	surface->Delete();
 	PolyMapper->Delete();
 	surfaceActor->Delete();
@@ -138,15 +138,16 @@ float *getDepthData() {
 
 
 // Locate vertices by depth ( x , y , depth )
-float *getVertices(float *depthData) {
-	float *points = new float[MESH_X_RES * MESH_Y_RES * 3];
+vtkFloatArray *getVertices(float *depthData) {
+	vtkFloatArray *points = vtkFloatArray::New();
+	points->SetNumberOfComponents(3);
 
 	for (int i = 0; i < MESH_X_RES; ++i)
 		for (int j = 0; j < MESH_Y_RES; ++j) {
-			int coord = i * MESH_Y_RES + j;
-			points[coord * 3] = i * SCALE * 100;
-			points[coord * 3 + 1] = j * SCALE * 100;
-			points[coord * 3 + 2] = depthData[i * SCALE * KINECT_Y_RES + j * SCALE];
+			if (depthData[i * SCALE * KINECT_Y_RES + j * SCALE] < 100) continue;
+			points->InsertNextValue(i * SCALE * 100);
+			points->InsertNextValue(j * SCALE * 100);
+			points->InsertNextValue(depthData[i * SCALE * KINECT_Y_RES + j * SCALE]);
 		}
 
 	return points;
