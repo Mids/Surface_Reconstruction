@@ -36,8 +36,6 @@ float *getDepthData();
 
 float *getVertices(float *depthData);
 
-vtkIdType *getTriangles();
-
 int main() {
 	int i;
 
@@ -152,28 +150,4 @@ float *getVertices(float *depthData) {
 		}
 
 	return points;
-}
-
-
-// Build triangles
-vtkIdType *getTriangles() {
-	vtkIdType *triangles = new vtkIdType[(KINECT_X_RES - 1) * (KINECT_Y_RES - 1) * 2 * 3]; // Build two triangles
-
-	int triCoord = 0;
-	for (int i = 1; i < KINECT_X_RES; ++i)
-		for (int j = 1; j < KINECT_Y_RES; ++j) {
-			// Right Top Triangle
-			triangles[triCoord] = (i - 1) * KINECT_Y_RES + (j - 1); // Left Top
-			triangles[triCoord + 1] = (i) * KINECT_Y_RES + (j - 1); // Top
-			triangles[triCoord + 2] = i * KINECT_Y_RES + j; // Self
-
-			// Left Bottom Triangle
-			triangles[triCoord + 3] = (i - 1) * KINECT_Y_RES + (j - 1); // Left Top
-			triangles[triCoord + 4] = (i - 1) * KINECT_Y_RES + (j); // Left
-			triangles[triCoord + 5] = i * KINECT_Y_RES + j; // Self
-
-			triCoord += 6;
-		}
-
-	return triangles;
 }
