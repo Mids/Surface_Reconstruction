@@ -10,6 +10,7 @@ vtk_module_config(VTK
         vtkFiltersGeometry
         vtkInteractionStyle
         vtkRendering${VTK_RENDERING_BACKEND}
+        vtkIOXML
         )
 include(${VTK_USE_FILE})
 

@@ -15,6 +15,7 @@
 // This example shows how to manually create vtkPolyData.
 
 #include <vtkDelaunay2D.h>
+#include "vtkXMLPolyDataWriter.h"
 #include "vtkActor.h"
 #include "vtkCamera.h"
 #include "vtkFloatArray.h"
@@ -34,14 +35,14 @@ static const int MESH_Y_RES = KINECT_Y_RES / SCALE;
 
 float *getDepthData();
 
-vtkFloatArray * getVertices(float *depthData);
+vtkSmartPointer<vtkFloatArray> getVertices(float *depthData);
 
 int main() {
 	int i;
 
 	// Get vertices and triangles from depth data
 	float *depthData = getDepthData();
-	vtkFloatArray *vertices = getVertices(depthData);
+	vtkSmartPointer<vtkFloatArray> vertices = getVertices(depthData);
 	delete (depthData);
 
 
@@ -77,6 +78,22 @@ int main() {
 	surfaceActor->SetMapper(PolyMapper);
 	surfaceActor->GetProperty()->SetRepresentationToWireframe();
 
+	// Write the file
+	vtkSmartPointer<vtkXMLPolyDataWriter> writer =
+			vtkSmartPointer<vtkXMLPolyDataWriter>::New();
+	writer->SetFileName("test.vtp");
+#if VTK_MAJOR_VERSION <= 5
+	writer->SetInput(polydata);
+#else
+	writer->SetInputConnection(delaunay->GetOutputPort());
+#endif
+
+	// Optional - set the mode. The default is binary.
+	//writer->SetDataModeToBinary();
+	//writer->SetDataModeToAscii();
+	writer->Write();
+
+
 	// The usual rendering stuff.
 	vtkCamera *camera = vtkCamera::New();
 	camera->SetPosition(1, 1, 1);
@@ -101,7 +118,6 @@ int main() {
 	iren->Start();
 
 	// Clean up
-	vertices->Delete();
 	surface->Delete();
 	PolyMapper->Delete();
 	surfaceActor->Delete();
@@ -138,8 +154,8 @@ float *getDepthData() {
 
 
 // Locate vertices by depth ( x , y , depth )
-vtkFloatArray *getVertices(float *depthData) {
-	vtkFloatArray *points = vtkFloatArray::New();
+vtkSmartPointer<vtkFloatArray> getVertices(float *depthData) {
+	vtkSmartPointer<vtkFloatArray> points = vtkSmartPointer<vtkFloatArray>::New();
 	points->SetNumberOfComponents(3);
 
 	for (int i = 0; i < MESH_X_RES; ++i)
