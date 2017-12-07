@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
 
-PROJECT (DataManipulation)
+PROJECT (Shape_Reconstruction)
 set(VTK_DIR "/home/default/Documents/Dev/VTK/build/")
 find_package(VTK REQUIRED)
 vtk_module_config(VTK
