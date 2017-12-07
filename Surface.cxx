@@ -14,13 +14,11 @@
 =========================================================================*/
 // This example shows how to manually create vtkPolyData.
 
+#include <vtkDelaunay2D.h>
 #include "vtkActor.h"
 #include "vtkCamera.h"
-#include "vtkCellArray.h"
 #include "vtkFloatArray.h"
 #include "vtkPointData.h"
-#include "vtkPoints.h"
-#include "vtkPolyData.h"
 #include "vtkPolyDataMapper.h"
 #include "vtkRenderWindow.h"
 #include "vtkRenderWindowInteractor.h"
@@ -42,37 +40,39 @@ int main() {
 	float *depthData = getDepthData();
 	float *vertices = getVertices(depthData);
 	delete (depthData);
-	vtkIdType *triangles = getTriangles();
 
 
 	// Create the building blocks of polydata
 	vtkPolyData *surface = vtkPolyData::New();
 	vtkPoints *points = vtkPoints::New();
-	vtkCellArray *cells = vtkCellArray::New();
 	vtkFloatArray *scalars = vtkFloatArray::New();
 
 
 	// Load the point, cell, and data attributes.
 	for (i = 0; i < KINECT_X_RES * KINECT_Y_RES; i++) points->InsertPoint(i, &vertices[i * 3]);
 	delete (vertices);
-	for (i = 0; i < (KINECT_X_RES - 1) * (KINECT_Y_RES - 1) * 2; i++) cells->InsertNextCell(3, &triangles[i * 3]);
-	delete (triangles);
 	for (i = 0; i < KINECT_X_RES * KINECT_Y_RES; i++) scalars->InsertTuple1(i, i);
 
-	// We now assign the pieces to the vtkPolyData.
+
+	// Assign the pieces to the vtkPolyData.
 	surface->SetPoints(points);
 	points->Delete();
-	surface->SetPolys(cells);
-	cells->Delete();
 	surface->GetPointData()->SetScalars(scalars);
 	scalars->Delete();
 
+
+	// Perform a 2D Delaunay triangulation on them.
+	vtkDelaunay2D *delaunay = vtkDelaunay2D::New();
+	delaunay->SetInputData(surface);
+	delaunay->SetTolerance(0.001);
+
+
 	// Now we'll look at it.
 	vtkPolyDataMapper *PolyMapper = vtkPolyDataMapper::New();
-	PolyMapper->SetInputData(surface);
+	PolyMapper->SetInputConnection(delaunay->GetOutputPort());
 	PolyMapper->SetScalarRange(0, KINECT_X_RES * KINECT_Y_RES - 1);
-	vtkActor *cubeActor = vtkActor::New();
-	cubeActor->SetMapper(PolyMapper);
+	vtkActor *surfaceActor = vtkActor::New();
+	surfaceActor->SetMapper(PolyMapper);
 
 	// The usual rendering stuff.
 	vtkCamera *camera = vtkCamera::New();
@@ -86,7 +86,7 @@ int main() {
 	vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
 	iren->SetRenderWindow(renWin);
 
-	renderer->AddActor(cubeActor);
+	renderer->AddActor(surfaceActor);
 	renderer->SetActiveCamera(camera);
 	renderer->ResetCamera();
 	renderer->SetBackground(1, 1, 1);
@@ -100,7 +100,7 @@ int main() {
 	// Clean up
 	surface->Delete();
 	PolyMapper->Delete();
-	cubeActor->Delete();
+	surfaceActor->Delete();
 	camera->Delete();
 	renderer->Delete();
 	renWin->Delete();
