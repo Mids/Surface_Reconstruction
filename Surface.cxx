@@ -15,6 +15,8 @@
 // This example shows how to manually create vtkPolyData.
 
 #include <vtkDelaunay2D.h>
+#include <vtkDelaunay3D.h>
+#include <vtkXMLDataSetWriter.h>
 #include "vtkXMLPolyDataWriter.h"
 #include "vtkActor.h"
 #include "vtkCamera.h"
@@ -93,6 +95,21 @@ int main() {
 	//writer->SetDataModeToAscii();
 	writer->Write();
 
+
+	// Generate a tetrahedral mesh from the input points. By
+	// default, the generated volume is the convex hull of the points.
+	vtkSmartPointer<vtkDelaunay3D> delaunay3D =
+			vtkSmartPointer<vtkDelaunay3D>::New();
+	delaunay3D->SetTolerance(0.01);
+	delaunay3D->BoundingTriangulationOff();
+	delaunay3D->SetInputConnection(delaunay->GetOutputPort());
+
+	// Write the mesh as an unstructured grid
+	vtkSmartPointer<vtkXMLDataSetWriter> writer3D =
+			vtkSmartPointer<vtkXMLDataSetWriter>::New();
+	writer3D->SetFileName("test.vtu");
+	writer3D->SetInputConnection(delaunay3D->GetOutputPort());
+	writer3D->Write();
 
 	// The usual rendering stuff.
 	vtkCamera *camera = vtkCamera::New();
