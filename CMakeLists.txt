@@ -11,6 +11,7 @@ vtk_module_config(VTK
         vtkInteractionStyle
         vtkRendering${VTK_RENDERING_BACKEND}
         vtkIOXML
+        vtkIOPLY
         )
 include(${VTK_USE_FILE})
 

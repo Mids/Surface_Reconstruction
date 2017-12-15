@@ -11,6 +11,8 @@
 #include "vtkRenderWindowInteractor.h"
 #include "vtkRenderer.h"
 #include "vtkProperty.h"
+#include "vtkPLYWriter.h"
+#include "vtkGeometryFilter.h"
 
 #define SCALE 10
 #define KINECT_X_RES 640
@@ -88,12 +90,31 @@ int main() {
 	delaunay3D->BoundingTriangulationOff();
 	delaunay3D->SetInputConnection(delaunay->GetOutputPort());
 
-	// Write the mesh as an unstructured grid
-	vtkSmartPointer<vtkXMLDataSetWriter> writer3D =
-			vtkSmartPointer<vtkXMLDataSetWriter>::New();
-	writer3D->SetFileName("test.vtu");
-	writer3D->SetInputConnection(delaunay3D->GetOutputPort());
-	writer3D->Write();
+//	// Write the mesh as an unstructured grid
+//	vtkSmartPointer<vtkXMLDataSetWriter> writer3D =
+//			vtkSmartPointer<vtkXMLDataSetWriter>::New();
+//	writer3D->SetFileName("test.vtu");
+//	writer3D->SetInputConnection(delaunay3D->GetOutputPort());
+//	writer3D->Write();
+
+
+	// Convert UnstructuredGrid to Polydata to create .ply file.
+	vtkSmartPointer<vtkGeometryFilter> geometryFilter =
+			vtkSmartPointer<vtkGeometryFilter>::New();
+#if VTK_MAJOR_VERSION <= 5
+	geometryFilter->SetInput(delaunay3D->GetOutputPort());
+#else
+	geometryFilter->SetInputConnection(delaunay3D->GetOutputPort());
+#endif
+	geometryFilter->Update();
+
+	// Write PLY
+	vtkSmartPointer<vtkPLYWriter> plyWriter = vtkSmartPointer<vtkPLYWriter>::New();
+	plyWriter->SetFileName("test.ply");
+	plyWriter->SetFileTypeToASCII(); // tetgen only can read ASCII
+	plyWriter->SetInputData(geometryFilter->GetOutput());
+	plyWriter->Write();
+
 
 	// The usual rendering stuff.
 	vtkCamera *camera = vtkCamera::New();
