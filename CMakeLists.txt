@@ -15,6 +15,6 @@ vtk_module_config(VTK
         )
 include(${VTK_USE_FILE})
 
-add_executable(Surface MACOSX_BUNDLE Surface.cxx)
+add_executable(Surface MACOSX_BUNDLE Surface.cxx Tetrahedralize.cxx Tetrahedralize.h)
 
 target_link_libraries(Surface ${VTK_LIBRARIES})
