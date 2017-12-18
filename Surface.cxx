@@ -13,8 +13,9 @@
 #include "vtkProperty.h"
 #include "vtkPLYWriter.h"
 #include "vtkGeometryFilter.h"
+#include "RawDataReader.h"
 
-#define SCALE 10
+#define SCALE 4
 #define KINECT_X_RES 640
 #define KINECT_Y_RES 480
 
@@ -29,7 +30,8 @@ int main() {
 	int i;
 
 	// Get vertices and triangles from depth data
-	float *depthData = getDepthData();
+	RawDataReader* rawDataReader = new RawDataReader();
+	float *depthData = rawDataReader->ReadData("kinectsdk_depth.data");
 	vtkSmartPointer<vtkFloatArray> vertices = getVertices(depthData);
 	delete (depthData);
 
@@ -182,9 +184,10 @@ vtkSmartPointer<vtkFloatArray> getVertices(float *depthData) {
 
 	for (int i = 0; i < MESH_X_RES; ++i)
 		for (int j = 0; j < MESH_Y_RES; ++j) {
-			if (depthData[i * SCALE * KINECT_Y_RES + j * SCALE] < 100) continue;
-			points->InsertNextValue(i * SCALE * 100);
-			points->InsertNextValue(j * SCALE * 100);
+			if (depthData[i * SCALE * KINECT_Y_RES + j * SCALE] < 200) continue;
+			if (depthData[i * SCALE * KINECT_Y_RES + j * SCALE] > 3000) continue;
+			points->InsertNextValue(i * SCALE * 5);
+			points->InsertNextValue(j * SCALE * 5);
 			points->InsertNextValue(depthData[i * SCALE * KINECT_Y_RES + j * SCALE]);
 		}
 
