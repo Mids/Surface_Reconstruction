@@ -1,6 +1,7 @@
 #include <vtkDelaunay2D.h>
 #include <vtkDelaunay3D.h>
 #include <vtkXMLDataSetWriter.h>
+#include <thread>
 #include "vtkXMLPolyDataWriter.h"
 #include "vtkActor.h"
 #include "vtkCamera.h"
@@ -24,21 +25,27 @@ static const int MESH_Y_RES = KINECT_Y_RES / SCALE;
 
 float *getDepthData();
 
+void CallNextFrames();
+
 vtkSmartPointer<vtkFloatArray> getVertices(float *depthData);
+
+RawDataReader *rawDataReader;
+vtkPolyData *surface;
+vtkRenderWindow *renWin;
+
 
 int main() {
 	int i;
 
 	// Get vertices and triangles from depth data
-	RawDataReader *rawDataReader = new RawDataReader();
-	rawDataReader->SetFileName("kinectsdk_depth.data", 100);
+	rawDataReader = new RawDataReader();
+	rawDataReader->SetFileName("kinectsdk_depth.data", 63);
 	float *depthData = rawDataReader->ReadNextFrame();
 	vtkSmartPointer<vtkFloatArray> vertices = getVertices(depthData);
-	delete (depthData);
 
 
 	// Create the building blocks of polydata
-	vtkPolyData *surface = vtkPolyData::New();
+	surface = vtkPolyData::New();
 	vtkPoints *points = vtkPoints::New();
 	vtkFloatArray *scalars = vtkFloatArray::New();
 
@@ -50,7 +57,6 @@ int main() {
 
 	// Assign the pieces to the vtkPolyData.
 	surface->SetPoints(points);
-	points->Delete();
 	surface->GetPointData()->SetScalars(scalars);
 	scalars->Delete();
 
@@ -65,6 +71,7 @@ int main() {
 	vtkPolyDataMapper *PolyMapper = vtkPolyDataMapper::New();
 	PolyMapper->SetInputConnection(delaunay->GetOutputPort());
 	PolyMapper->SetScalarRange(0, MESH_X_RES * MESH_Y_RES - 1);
+
 	vtkActor *surfaceActor = vtkActor::New();
 	surfaceActor->SetMapper(PolyMapper);
 	surfaceActor->GetProperty()->SetRepresentationToWireframe();
@@ -125,7 +132,7 @@ int main() {
 	camera->SetFocalPoint(0, 0, 0);
 
 	vtkRenderer *renderer = vtkRenderer::New();
-	vtkRenderWindow *renWin = vtkRenderWindow::New();
+	renWin = vtkRenderWindow::New();
 	renWin->AddRenderer(renderer);
 
 	vtkRenderWindowInteractor *iren = vtkRenderWindowInteractor::New();
@@ -140,9 +147,14 @@ int main() {
 
 	// interact with data
 	renWin->Render();
-	iren->Start();
+	iren->Initialize();
+
+	// Play the frame
+	std::thread(&CallNextFrames).join();
 
 	// Clean up
+	delete (depthData);
+	points->Delete();
 	delete rawDataReader;
 	surface->Delete();
 	PolyMapper->Delete();
@@ -194,4 +206,14 @@ vtkSmartPointer<vtkFloatArray> getVertices(float *depthData) {
 		}
 
 	return points;
+}
+
+void CallNextFrames() {
+	while(true) {
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		float *nextFrameDepth = rawDataReader->ReadNextFrame();
+		if(nextFrameDepth == nullptr) return;
+		surface->GetPoints()->SetData(getVertices(nextFrameDepth));
+		renWin->Render();
+	}
 }

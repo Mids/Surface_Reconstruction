@@ -7,7 +7,6 @@
 
 #define KINECT_X_RES 640
 #define KINECT_Y_RES 480
-#define DUMPSIZE 150
 
 // Read Data from the file
 void RawDataReader::SetFileName(const char *_arg) {
@@ -16,7 +15,6 @@ void RawDataReader::SetFileName(const char *_arg) {
 
 void RawDataReader::SetFileName(const char *_arg, int startFrame) {
 	file.open(_arg, std::ios::binary);
-	index = DUMPSIZE;
 	if (file.is_open()) {
 		// The first address of the frame
 		index += KINECT_X_RES * KINECT_Y_RES * startFrame * 2;
@@ -31,6 +29,9 @@ float *RawDataReader::ReadNextFrame() {
 	if(bufferFrame == nullptr)
 		bufferFrame = new float[KINECT_X_RES * KINECT_Y_RES];
 	unsigned short buffer;
+
+	// frame info ?
+	file.seekg(12, std::ios_base::cur);
 
 	// Check whether opened or not
 	if (!file.is_open()) {
