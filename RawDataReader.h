@@ -11,12 +11,14 @@
 class RawDataReader {
 public:
 	~RawDataReader();
+
 	/**
 	 *
 	 * @param _arg Filename
 	 * @return 640*480 float array
 	 */
 	void SetFileName(const char *_arg);
+
 	void SetFileName(const char *_arg, int startFrame);
 
 	/**
@@ -28,7 +30,7 @@ public:
 private:
 	int index;
 	std::ifstream file;
-	float* bufferFrame;
+	float *bufferFrame;
 };
 
 

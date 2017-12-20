@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
 
 
-PROJECT (Shape_Reconstruction)
+PROJECT(Shape_Reconstruction)
 set(VTK_DIR "/home/default/Documents/Dev/VTK/build/")
 find_package(VTK REQUIRED)
 find_package(Threads)

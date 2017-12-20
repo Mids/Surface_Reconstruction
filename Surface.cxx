@@ -209,10 +209,10 @@ vtkSmartPointer<vtkFloatArray> getVertices(float *depthData) {
 }
 
 void CallNextFrames() {
-	while(true) {
+	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		float *nextFrameDepth = rawDataReader->ReadNextFrame();
-		if(nextFrameDepth == nullptr) return;
+		if (nextFrameDepth == nullptr) return;
 		surface->GetPoints()->SetData(getVertices(nextFrameDepth));
 		renWin->Render();
 	}

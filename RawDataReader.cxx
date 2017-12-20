@@ -26,7 +26,7 @@ void RawDataReader::SetFileName(const char *_arg, int startFrame) {
 
 // Read 640*480 data
 float *RawDataReader::ReadNextFrame() {
-	if(bufferFrame == nullptr)
+	if (bufferFrame == nullptr)
 		bufferFrame = new float[KINECT_X_RES * KINECT_Y_RES];
 	unsigned short buffer;
 
