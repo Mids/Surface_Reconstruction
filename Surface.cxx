@@ -30,8 +30,9 @@ int main() {
 	int i;
 
 	// Get vertices and triangles from depth data
-	RawDataReader* rawDataReader = new RawDataReader();
-	float *depthData = rawDataReader->ReadData("kinectsdk_depth.data");
+	RawDataReader *rawDataReader = new RawDataReader();
+	rawDataReader->SetFileName("kinectsdk_depth.data", 100);
+	float *depthData = rawDataReader->ReadNextFrame();
 	vtkSmartPointer<vtkFloatArray> vertices = getVertices(depthData);
 	delete (depthData);
 
@@ -142,6 +143,7 @@ int main() {
 	iren->Start();
 
 	// Clean up
+	delete rawDataReader;
 	surface->Delete();
 	PolyMapper->Delete();
 	surfaceActor->Delete();

@@ -10,19 +10,25 @@
 
 class RawDataReader {
 public:
+	~RawDataReader();
 	/**
 	 *
 	 * @param _arg Filename
 	 * @return 640*480 float array
 	 */
-	float * ReadData(const char *_arg);
+	void SetFileName(const char *_arg);
+	void SetFileName(const char *_arg, int startFrame);
 
 	/**
 	 *
-	 * @param input	Input filestream
-	 * @return	640*480 float array of current frame
+	 * @return 640*480 float array of next frame
 	 */
-	float *ReadFrame(std::ifstream &input);
+	float *ReadNextFrame();
+
+private:
+	int index;
+	std::ifstream file;
+	float* bufferFrame;
 };
 
 
