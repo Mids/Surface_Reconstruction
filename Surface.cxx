@@ -150,7 +150,10 @@ int main() {
 	iren->Initialize();
 
 	// Play the frame
-	std::thread(&CallNextFrames).join();
+	CallNextFrames();
+
+	// Stopped
+	//iren->Start();
 
 	// Clean up
 	delete (depthData);
@@ -208,12 +211,18 @@ vtkSmartPointer<vtkFloatArray> getVertices(float *depthData) {
 	return points;
 }
 
+// Render every frames until the end
 void CallNextFrames() {
 	while (true) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 		float *nextFrameDepth = rawDataReader->ReadNextFrame();
+
+		// If it's finished
 		if (nextFrameDepth == nullptr) return;
+
+		// Reset points
 		surface->GetPoints()->SetData(getVertices(nextFrameDepth));
+
 		renWin->Render();
 	}
 }
