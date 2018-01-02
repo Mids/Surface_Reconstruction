@@ -5,12 +5,14 @@
 #ifndef SHAPE_RECONSTRUCTION_TETRAHEDRALIZE_H
 #define SHAPE_RECONSTRUCTION_TETRAHEDRALIZE_H
 
+#include "predicates.h"
 #include <vtkPolyData.h>
+#include "TetGenMesh.h"
 
-class Tetrahedralize {
+
+class TetGen {
 public:
-	vtkPolyData GetOutput(vtkPolyData *input);
+	vtkPolyData tetrahedralize(vtkPolyData *input);
 };
-
 
 #endif //SHAPE_RECONSTRUCTION_TETRAHEDRALIZE_H
