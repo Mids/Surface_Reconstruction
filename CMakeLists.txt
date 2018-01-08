@@ -16,6 +16,6 @@ vtk_module_config(VTK
         )
 include(${VTK_USE_FILE})
 
-add_executable(Surface MACOSX_BUNDLE Surface.cxx RawDataReader.cxx RawDataReader.h)
+add_executable(Surface Surface.cxx TetGen.cxx TetGen.h RawDataReader.cxx RawDataReader.h TetGenMesh.cxx TetGenMesh.h TetGenBehavior.cxx TetGenBehavior.h predicates.cxx predicates.h TetGenIO.cxx TetGenIO.h)
 
 target_link_libraries(Surface ${VTK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
