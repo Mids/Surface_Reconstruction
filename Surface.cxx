@@ -15,8 +15,9 @@
 #include "vtkPLYWriter.h"
 #include "vtkGeometryFilter.h"
 #include "RawDataReader.h"
+#include "TetGen.h"
 
-#define SCALE 4
+#define SCALE 16
 #define KINECT_X_RES 640
 #define KINECT_Y_RES 480
 
@@ -40,7 +41,8 @@ int main() {
 	// Get vertices and triangles from depth data
 	rawDataReader = new RawDataReader();
 	rawDataReader->SetFileName("kinectsdk_depth.data", 63);
-	float *depthData = rawDataReader->ReadNextFrame();
+	float *depthData = getDepthData();
+//	float *depthData = rawDataReader->ReadNextFrame();
 	vtkSmartPointer<vtkFloatArray> vertices = getVertices(depthData);
 
 
@@ -119,11 +121,15 @@ int main() {
 	geometryFilter->Update();
 
 	// Write PLY
+	vtkPolyData* filteredData = geometryFilter->GetOutput();
 	vtkSmartPointer<vtkPLYWriter> plyWriter = vtkSmartPointer<vtkPLYWriter>::New();
 	plyWriter->SetFileName("test.ply");
 	plyWriter->SetFileTypeToASCII(); // tetgen only can read ASCII
-	plyWriter->SetInputData(geometryFilter->GetOutput());
+	plyWriter->SetInputData(filteredData);
 	plyWriter->Write();
+
+	TetGen tetGen;
+	tetGen.tetrahedralize(filteredData->GetPoints(), filteredData->GetPolys());
 
 
 	// The usual rendering stuff.
@@ -150,10 +156,10 @@ int main() {
 	iren->Initialize();
 
 	// Play the frame
-	CallNextFrames();
+//	CallNextFrames();
 
 	// Stopped
-	//iren->Start();
+	iren->Start();
 
 	// Clean up
 	delete (depthData);
@@ -202,9 +208,9 @@ vtkSmartPointer<vtkFloatArray> getVertices(float *depthData) {
 	for (int i = 0; i < MESH_X_RES; ++i)
 		for (int j = 0; j < MESH_Y_RES; ++j) {
 			if (depthData[i * SCALE * KINECT_Y_RES + j * SCALE] < 200) continue;
-			if (depthData[i * SCALE * KINECT_Y_RES + j * SCALE] > 3000) continue;
-			points->InsertNextValue(i * SCALE * 5);
-			points->InsertNextValue(j * SCALE * 5);
+			if (depthData[i * SCALE * KINECT_Y_RES + j * SCALE] > 50000) continue;
+			points->InsertNextValue(i * SCALE * 100);
+			points->InsertNextValue(j * SCALE * 100);
 			points->InsertNextValue(depthData[i * SCALE * KINECT_Y_RES + j * SCALE]);
 		}
 

@@ -4,14 +4,14 @@
 
 #include "TetGen.h"
 
-vtkPolyData TetGen::tetrahedralize(vtkPolyData *input) {
-
-	TetGenMesh tetGenMesh;
+void TetGen::tetrahedralize(vtkPoints *iPoints, vtkCellArray *iPolys) {
 	clock_t ts[5]; // Timing informations (defined in time.h)
 
-//	tetGenMesh.b = b;
-//	tetGenMesh.in = in;
-//	tetGenMesh.addin = addin;
+	tetGenMesh.b = new TetGenBehavior;
+	tetGenMesh.b->plc = 1;
+	tetGenMesh.b->verbose = 1;
+	strcpy(tetGenMesh.b->outfilename, "TetGenResult");
+	tetGenMesh.vtkToTetGenMesh(iPoints, iPolys);
 
 	tetGenMesh.initializepools();
 	tetGenMesh.transfernodes();
@@ -25,6 +25,9 @@ vtkPolyData TetGen::tetrahedralize(vtkPolyData *input) {
 
 	tetGenMesh.meshsurface();
 	tetGenMesh.constraineddelaunay(ts[0]);
+
+	tetGenMesh.outnodes(NULL);
+	tetGenMesh.outelements(NULL);
 
 
 //	if (!b->nojettison && ((tetGenMesh.dupverts > 0) || (tetGenMesh.unuverts > 0)

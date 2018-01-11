@@ -3,6 +3,7 @@
 //
 
 #include "TetGenMesh.h"
+#include "TetGenIO.h"
 
 //// mempool_cxx //////////////////////////////////////////////////////////////
 ////                                                                       ////
@@ -27262,3 +27263,49 @@ void TetGenMesh::outmesh2vtk(char* ofilename)
 ////                                                                       ////
 ////                                                                       ////
 //// output_cxx ///////////////////////////////////////////////////////////////
+
+
+void TetGenMesh::vtkToTetGenMesh(vtkPoints *iPoints, vtkCellArray *iPolys) {
+	in = new TetGenIO();
+	int nverts = iPoints->GetNumberOfPoints();
+	in->numberofpoints = nverts;
+	in->pointlist = new REAL[nverts * 3];
+	int nfaces = iPolys->GetNumberOfCells();
+	in->numberoffacets = nfaces;
+	in->facetlist = new TetGenIO::facet[nfaces];
+
+	int i, j;
+	double *coord;
+	TetGenIO::facet *f;
+	TetGenIO::polygon *p;
+
+	for (i = 0; i < nverts; i++) {
+		// Get vertices
+		coord = &in->pointlist[i * 3];
+		for (j = 0; j < 3; j++) {
+			coord[j] = iPoints->GetPoint(i)[j];
+		}
+	}
+
+	iPolys->InitTraversal();
+	for (i = 0; i < nfaces; i++) {
+		// Get faces
+		f = &in->facetlist[i];
+		in->init(f);
+		f->numberofpolygons = 1;
+		f->polygonlist = new TetGenIO::polygon[1];
+		p = &f->polygonlist[0];
+		in->init(p);
+		// Read the number of vertices, it should be greater than 0.
+		p->numberofvertices = 3;
+		// Allocate memory for face vertices
+		p->vertexlist = new int[p->numberofvertices];
+
+		vtkIdType npts = 0;
+		vtkIdType *pts = nullptr;
+		iPolys->GetNextCell(npts, pts);
+		for (j = 0; j < 3; j++) {
+			p->vertexlist[j] = static_cast<int>(pts[j]);
+		}
+	}
+}
