@@ -5,10 +5,12 @@
 #ifndef SHAPE_RECONSTRUCTION_TETGENMESH_H
 #define SHAPE_RECONSTRUCTION_TETGENMESH_H
 
-#include "TetGen.h"
+//#include "TetGen.h"
+#include <ctime>
+#include <vtkPolyData.h>
+#include "predicates.h"
 #include "TetGenBehavior.h"
 #include "TetGenIO.h"
-
 
 class TetGenMesh {
 
@@ -1411,6 +1413,7 @@ public:
 		freememory();
 	} // ~TetGenMesh()
 
+	void vtkToTetGenMesh(vtkPoints *iPoints, vtkCellArray *iPolys);
 };                                               // End of class TetGenMesh.
 
 ///////////////////////////////////////////////////////////////////////////////

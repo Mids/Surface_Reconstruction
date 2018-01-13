@@ -12,7 +12,11 @@
 
 class TetGen {
 public:
-	vtkPolyData tetrahedralize(vtkPolyData *input);
+	TetGenMesh tetGenMesh;
+
+	void tetrahedralize(vtkPoints *iPoints, vtkCellArray *iPolys);
+
+
 };
 
 #endif //SHAPE_RECONSTRUCTION_TETRAHEDRALIZE_H
